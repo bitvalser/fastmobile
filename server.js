@@ -94,31 +94,38 @@ const parseDiscussion = url => {
         .children('li')
         .toArray()
         .forEach(discussionItem => {
-          console.log(
+          if (
             $(`#${discussionItem.attribs.id} .title a`)
               .last()
               .text()
-          );
-          discussionList.push({
-            title: $(`#${discussionItem.attribs.id} .title a`)
-              .last()
-              .text(),
-            link: $(`#${discussionItem.attribs.id} .title a`).attr()['href'],
-            isImportant:
+          ) {
+            console.log(
               $(`#${discussionItem.attribs.id} .title a`)
-                .first()
+                .last()
                 .text()
-                .toLocaleLowerCase() === 'важно',
-            isLocked: $(`#${discussionItem.attribs.id}`).hasClass('locked'),
-            isSticky: !!$(`#${discussionItem.attribs.id}`).hasClass('sticky'),
-            answers: $(`#${discussionItem.attribs.id} .listBlock.stats.pairsJustified .major dd`).text(),
-            views: $(`#${discussionItem.attribs.id} .listBlock.stats.pairsJustified .minor dd`).text(),
-            author: {
-              name: $(`#${discussionItem.attribs.id} .username`).text(),
-              link: $(`#${discussionItem.attribs.id} .username`).attr()['href'],
-              avatar: $(`#${discussionItem.attribs.id} .avatarContainer img`).attr()['src']
-            }
-          });
+            );
+            discussionList.push({
+              title: $(`#${discussionItem.attribs.id} .title a`)
+                .last()
+                .text(),
+              link: $(`#${discussionItem.attribs.id} .title a`).attr()['href'],
+              isImportant:
+                $(`#${discussionItem.attribs.id} .title a`)
+                  .first()
+                  .text()
+                  .toLocaleLowerCase() === 'важно',
+              isLocked: $(`#${discussionItem.attribs.id}`).hasClass('locked'),
+              isSticky: !!$(`#${discussionItem.attribs.id}`).hasClass('sticky'),
+              answers: $(`#${discussionItem.attribs.id} .listBlock.stats.pairsJustified .major dd`).text(),
+              views: $(`#${discussionItem.attribs.id} .listBlock.stats.pairsJustified .minor dd`).text(),
+              date: $(`#${discussionItem.attribs.id} .DateTime`).first().text(),
+              author: {
+                name: $(`#${discussionItem.attribs.id} .username`).first().text(),
+                link: $(`#${discussionItem.attribs.id} .username`).attr()['href'],
+                avatar: $(`#${discussionItem.attribs.id} .avatarContainer img`).attr()['src']
+              }
+            });
+          }
         });
       if ($('#forums')) {
         parseForum(url).then(forums => {
