@@ -159,7 +159,7 @@ const parseMessages = url => {
             content: $(`#${message.attribs.id} .messageContent`)
               .html()
               .trim()
-              .replace(new RegExp('[\t\s\n]', 'g'), ''),
+              .replace(new RegExp('[\t\n]', 'g'), ''),
             number: $(`#${message.attribs.id} .publicControls a`).text(),
             likes: $(`#${message.attribs.id} .LikeText`)
               .text()
