@@ -79,11 +79,11 @@ const parseForum = url => {
                   });
                 }
               });
+              forumData.push({
+                title,
+                forumsData
+              });
           }
-          forumData.push({
-            title,
-            forumsData
-          });
         });
       resolve(forumData);
     });
