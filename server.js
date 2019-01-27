@@ -26,53 +26,60 @@ const parseForum = url => {
             )} .nodeInfo.categoryNodeInfo.categoryStrip .nodeTitle a`
           ).text();
           let forumsData = [];
-          $(`#${forumSelector.replace(new RegExp('[.]', 'g'), '\\.')}${forumSelector !== 'forums' ? ' ol' : ''}`)
-            .children('li')
-            .toArray()
-            .forEach(node => {
-              let queryItem = `#${forumSelector.replace(new RegExp('[.]', 'g'), '\\.')} .${node.attribs.class
-                .replace(new RegExp('\\s\\s', 'g'), '.')
-                .replace(new RegExp('\\s', 'g'), '.')}`;
-              console.log(
-                $(`${queryItem} .nodeTitle a`)
-                  .first()
-                  .text()
-              );
-              if (
-                $(queryItem)
-                  .parent()
-                  .hasClass('nodeList')
-              ) {
-                forumsData.push({
-                  title: $(`${queryItem} .nodeTitle a`)
+          if (forumData.length === 0 || forumSelector !== 'forums') {
+            $(`#${forumSelector.replace(new RegExp('[.]', 'g'), '\\.')}${forumSelector !== 'forums' ? ' ol' : ''}`)
+              .children('li')
+              .toArray()
+              .forEach(node => {
+                let queryItem = `#${forumSelector.replace(new RegExp('[.]', 'g'), '\\.')} .${node.attribs.class
+                  .replace(new RegExp('\\s\\s', 'g'), '.')
+                  .replace(new RegExp('\\s', 'g'), '.')}`;
+                console.log(
+                  $(`${queryItem} .nodeTitle a`)
                     .first()
-                    .text(),
-                  link: $(`${queryItem} .nodeTitle a`)
-                    .first()
-                    .attr()['href'],
-                  themes: $(`${queryItem} .nodeStats.pairsInline`)
-                    .children('dl')
-                    .first()
-                    .children('dd')
-                    .text(),
-                  messages: $(`${queryItem} .nodeStats.pairsInline`)
-                    .children('dl')
-                    .last()
-                    .children('dd')
-                    .text(),
-                  lastMessage: {
-                    title: $(`${queryItem} .nodeLastPost.secondaryContent .lastThreadTitle a`).text(),
-                    author: {
-                      name: $(`${queryItem} .nodeLastPost.secondaryContent .lastThreadMeta .lastThreadUser a`).text(),
-                      link: $(`${queryItem} .nodeLastPost.secondaryContent .lastThreadMeta .lastThreadUser a`).attr()[
-                        'href'
-                      ]
-                    },
-                    data: $(`${queryItem} .nodeLastPost.secondaryContent .DateTime`).text()
-                  }
-                });
-              }
-            });
+                    .text()
+                );
+                if (
+                  $(queryItem)
+                    .parent()
+                    .hasClass('nodeList')
+                ) {
+                  forumsData.push({
+                    title: $(`${queryItem} .nodeTitle a`)
+                      .first()
+                      .text(),
+                    link: $(`${queryItem} .nodeTitle a`)
+                      .first()
+                      .attr()['href'],
+                    themes: $(`${queryItem} .nodeStats.pairsInline`)
+                      .children('dl')
+                      .first()
+                      .children('dd')
+                      .text(),
+                    messages: $(`${queryItem} .nodeStats.pairsInline`)
+                      .children('dl')
+                      .last()
+                      .children('dd')
+                      .text(),
+                    isLastMessage: !!$(`${queryItem} .nodeLastPost.secondaryContent .lastThreadUser`).attr(),
+                    lastMessage: !!$(`${queryItem} .nodeLastPost.secondaryContent .lastThreadUser`).attr()
+                      ? {
+                          title: $(`${queryItem} .nodeLastPost.secondaryContent .lastThreadTitle a`).text(),
+                          author: {
+                            name: $(
+                              `${queryItem} .nodeLastPost.secondaryContent .lastThreadMeta .lastThreadUser a`
+                            ).text(),
+                            link: $(
+                              `${queryItem} .nodeLastPost.secondaryContent .lastThreadMeta .lastThreadUser a`
+                            ).attr()['href']
+                          },
+                          data: $(`${queryItem} .nodeLastPost.secondaryContent .DateTime`).text()
+                        }
+                      : null
+                  });
+                }
+              });
+          }
           forumData.push({
             title,
             forumsData
@@ -118,9 +125,13 @@ const parseDiscussion = url => {
               isSticky: !!$(`#${discussionItem.attribs.id}`).hasClass('sticky'),
               answers: $(`#${discussionItem.attribs.id} .listBlock.stats.pairsJustified .major dd`).text(),
               views: $(`#${discussionItem.attribs.id} .listBlock.stats.pairsJustified .minor dd`).text(),
-              date: $(`#${discussionItem.attribs.id} .DateTime`).first().text(),
+              date: $(`#${discussionItem.attribs.id} .DateTime`)
+                .first()
+                .text(),
               author: {
-                name: $(`#${discussionItem.attribs.id} .username`).first().text(),
+                name: $(`#${discussionItem.attribs.id} .username`)
+                  .first()
+                  .text(),
                 link: $(`#${discussionItem.attribs.id} .username`).attr()['href'],
                 avatar: $(`#${discussionItem.attribs.id} .avatarContainer img`).attr()['src']
               }
@@ -155,6 +166,19 @@ const parseMessages = url => {
         .toArray()
         .forEach(message => {
           console.log($(`#${message.attribs.id} .publicControls a`).text());
+          let status = [];
+          $(`#${message.attribs.id} .userText`)
+            .children('em')
+            .toArray()
+            .forEach(stat => {
+              status.push(
+                $(
+                  `#${message.attribs.id} .userText .${stat.attribs.class
+                    .replace(new RegExp('\\s\\s', 'g'), '.')
+                    .replace(new RegExp('\\s', 'g'), '.')} strong`
+                ).text()
+              );
+            });
           messages.push({
             content: $(`#${message.attribs.id} .messageContent`)
               .html()
@@ -168,7 +192,7 @@ const parseMessages = url => {
             author: {
               name: $(`#${message.attribs.id} .userText a`).text(),
               link: $(`#${message.attribs.id} .userText a`).attr()['href'],
-              status: $(`#${message.attribs.id} .userText strong`).text(),
+              status,
               avatar: $(`#${message.attribs.id} .avatar img`).attr()['src'],
               additionalInfo: $(`#${message.attribs.id} .extraUserInfo`)
                 .text()
